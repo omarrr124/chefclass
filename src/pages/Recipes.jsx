@@ -2,8 +2,10 @@ import { useEffect, useState, useRef } from 'react'
 import { Heart, Utensils } from 'lucide-react'
 import { SearchBar } from '@/components/ui/search-bar'
 import { supabase } from '../supabaseClient'
+import { useLanguage } from '../context/LanguageContext'
 
 export default function Recipes() {
+  const { t } = useLanguage()
   const [recipes, setRecipes] = useState([])
   const [categories, setCategories] = useState([])
   const [viewRecipe, setViewRecipe] = useState(null)
@@ -82,10 +84,10 @@ export default function Recipes() {
   return (
     <div className="p-4 md:p-20 pt-12 md:pt-20">
       <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 sm:gap-0 mb-8 w-full">
-        <h1 className="page-title text-4xl sm:text-[3.5rem] !mb-0 text-center sm:text-left">Latest Recipes</h1>
+        <h1 className="page-title text-4xl sm:text-[3.5rem] !mb-0 text-center sm:text-left">{t('recipes.title')}</h1>
         <div className="flex gap-4 items-center w-full sm:w-auto">
           <SearchBar 
-            placeholder="Search recipes..." 
+            placeholder={t('recipes.search')}
             onSearch={setSearchQuery} 
             currentQuery={searchQuery}
           />
@@ -98,7 +100,7 @@ export default function Recipes() {
             onClick={() => setActiveCategory(null)}
             style={{ padding: '0.5rem 1.5rem', borderRadius: '20px', border: '1px solid var(--primary)', backgroundColor: activeCategory === null ? 'var(--primary)' : 'var(--panel-bg)', color: activeCategory === null ? 'var(--cta)' : 'var(--primary)', cursor: 'pointer', transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)', fontWeight: '600' }}
           >
-            All
+            {t('recipes.all')}
           </button>
           {categories.map(c => (
             <button 
@@ -156,20 +158,20 @@ export default function Recipes() {
               zIndex: 10,
               boxShadow: '0 4px 10px rgba(0, 0, 0, 0.6)'
             }}>
-              {recipe.category || 'RECIPE'}
+              {recipe.category || t('recipes.recipeTag')}
             </div>
 
             <div style={{ padding: '2.5rem 1.5rem 2rem 1.5rem', display: 'flex', flexDirection: 'column', flex: 1 }}>
               <h3 className="heading" style={{ fontSize: '1.6rem', fontWeight: '600', color: 'var(--text)', marginBottom: '0.5rem' }}>{recipe.title}</h3>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: 'auto' }}>
                 <span style={{ fontSize: '0.8rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '1px', padding: '0.3rem 0.8rem', borderRadius: '20px', backgroundColor: recipe.difficulty === 'easy' ? 'rgba(34, 197, 94, 0.1)' : recipe.difficulty === 'hard' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(212, 175, 55, 0.1)', color: recipe.difficulty === 'easy' ? '#22c55e' : recipe.difficulty === 'hard' ? '#ef4444' : 'var(--primary)', border: `1px solid ${recipe.difficulty === 'easy' ? 'rgba(34, 197, 94, 0.3)' : recipe.difficulty === 'hard' ? 'rgba(239, 68, 68, 0.3)' : 'rgba(212, 175, 55, 0.3)'}` }}>
-                  {recipe.difficulty || 'medium'}
+                  {recipe.difficulty === 'easy' ? t('difficulty.easy') : recipe.difficulty === 'hard' ? t('difficulty.hard') : t('difficulty.medium')}
                 </span>
               </div>
             </div>
           </div>
         ))}
-        {displayedRecipes.length === 0 && <p style={{ color: 'var(--primary)', fontSize: '1.2rem', fontWeight: '500' }}>No recipes match your criteria.</p>}
+        {displayedRecipes.length === 0 && <p style={{ color: 'var(--primary)', fontSize: '1.2rem', fontWeight: '500' }}>{t('recipes.noMatch')}</p>}
       </div>
 
       {/* Recipe Preview Modal */}
@@ -197,7 +199,7 @@ export default function Recipes() {
                 />
               )}
               <div style={{ position: 'absolute', bottom: '-15px', left: '2.5rem', backgroundColor: 'var(--secondary)', color: 'var(--cta)', padding: '0.4rem 1.2rem', borderRadius: '20px', fontWeight: '700', fontSize: '0.85rem', letterSpacing: '1px', textTransform: 'uppercase', boxShadow: '0 4px 10px rgba(0, 0, 0, 0.6)' }}>
-                {viewRecipe.category || 'RECIPE'}
+                {viewRecipe.category || t('recipes.recipeTag')}
               </div>
             </div>
             
@@ -206,7 +208,7 @@ export default function Recipes() {
               
               <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: '2.5rem' }}>
                 <div className="p-4 md:p-8" style={{ backgroundColor: 'var(--panel-bg)', borderRadius: '16px', border: '1px solid rgba(212, 175, 55, 0.15)' }}>
-                  <h3 style={{ fontSize: '1.3rem', color: 'var(--primary)', fontWeight: '600', marginBottom: '1.5rem', borderBottom: '1px solid rgba(212, 175, 55, 0.2)', paddingBottom: '0.5rem', letterSpacing: '2px', textTransform: 'uppercase' }}>Ingredients</h3>
+                  <h3 style={{ fontSize: '1.3rem', color: 'var(--primary)', fontWeight: '600', marginBottom: '1.5rem', borderBottom: '1px solid rgba(212, 175, 55, 0.2)', paddingBottom: '0.5rem', letterSpacing: '2px', textTransform: 'uppercase' }}>{t('recipes.ingredients')}</h3>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
                     {(() => {
                       let parsedIngredients = [];
@@ -257,7 +259,7 @@ export default function Recipes() {
                 </div>
                 
                 <div style={{ padding: '0 1rem' }}>
-                  <h3 style={{ fontSize: '1.3rem', color: 'var(--primary)', fontWeight: '600', marginBottom: '1.5rem', borderBottom: '1px solid rgba(212, 175, 55, 0.2)', paddingBottom: '0.5rem', letterSpacing: '2px', textTransform: 'uppercase' }}>Method</h3>
+                  <h3 style={{ fontSize: '1.3rem', color: 'var(--primary)', fontWeight: '600', marginBottom: '1.5rem', borderBottom: '1px solid rgba(212, 175, 55, 0.2)', paddingBottom: '0.5rem', letterSpacing: '2px', textTransform: 'uppercase' }}>{t('recipes.method')}</h3>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                     {viewRecipe.method.split('\n').filter(line => line.trim()).map((step, idx) => (
                       <div key={idx} style={{ display: 'flex', gap: '1.5rem' }}>

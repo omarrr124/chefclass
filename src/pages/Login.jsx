@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import { supabase } from '../supabaseClient'
 import { useNavigate } from 'react-router-dom'
+import { useLanguage } from '../context/LanguageContext'
 
 export default function Login() {
+  const { t } = useLanguage()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -20,7 +22,7 @@ export default function Login() {
     })
 
     if (error) {
-      setError(error.message)
+      setError(t('login.invalid') || error.message)
       setLoading(false)
     } else {
       navigate('/admin')
@@ -28,50 +30,52 @@ export default function Login() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
-      <div className="glass-card" style={{ padding: '3rem', maxWidth: '400px', width: '100%', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-        <h1 className="heading" style={{ fontSize: '2.5rem', textAlign: 'center', color: 'var(--primary)' }}>Admin Login</h1>
+    <div className="flex-1 flex items-center justify-center p-6 md:p-8 min-h-[60vh]">
+      <div className="glass-card w-full max-w-[400px] flex flex-col gap-6 md:gap-8 p-6 sm:p-8 md:p-12">
+        <h1 className="heading text-center text-3xl md:text-[2.5rem]" style={{ color: 'var(--primary)' }}>{t('login.title')}</h1>
         
         {error && (
-          <div style={{ padding: '1rem', backgroundColor: 'rgba(239, 68, 68, 0.1)', border: '1px solid #ef4444', borderRadius: '8px', color: '#ef4444', fontSize: '0.9rem' }}>
+          <div className="p-4 bg-red-500/10 border border-red-500 rounded-lg text-red-500 text-sm">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        <form onSubmit={handleLogin} className="flex flex-col gap-6">
           <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--primary)', fontWeight: '600' }}>Email</label>
+            <label className="block mb-2 font-semibold" style={{ color: 'var(--primary)' }}>{t('login.email')}</label>
             <input 
               type="email" 
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--glass-border)', background: 'var(--input-bg)', color: 'var(--text)', outline: 'none' }}
+              className="w-full p-3 rounded-lg border outline-none focus:ring-2 focus:ring-[var(--primary)] transition-all"
+              style={{ borderColor: 'var(--glass-border)', background: 'var(--input-bg)', color: 'var(--text)' }}
             />
           </div>
           <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--primary)', fontWeight: '600' }}>Password</label>
+            <label className="block mb-2 font-semibold" style={{ color: 'var(--primary)' }}>{t('login.password')}</label>
             <input 
               type="password" 
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--glass-border)', background: 'var(--input-bg)', color: 'var(--text)', outline: 'none' }}
+              className="w-full p-3 rounded-lg border outline-none focus:ring-2 focus:ring-[var(--primary)] transition-all"
+              style={{ borderColor: 'var(--glass-border)', background: 'var(--input-bg)', color: 'var(--text)' }}
             />
           </div>
           <button 
             type="submit" 
-            className="btn btn-primary" 
+            className="btn btn-primary w-full mt-2" 
             disabled={loading}
-            style={{ marginTop: '1rem', width: '100%', border: 'none' }}
+            style={{ border: 'none' }}
           >
-            {loading ? 'Authenticating...' : 'Secure Login'}
+            {loading ? '...' : t('login.enter')}
           </button>
         </form>
         
-        <div style={{ textAlign: 'center' }}>
-          <button onClick={() => navigate('/')} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '0.9rem', textDecoration: 'underline' }}>
-            &larr; Return to Public Site
+        <div className="text-center">
+          <button onClick={() => navigate('/')} className="bg-transparent border-none cursor-pointer text-sm underline hover:opacity-80 transition-opacity" style={{ color: 'var(--text-muted)' }}>
+            &larr; {t('login.back')}
           </button>
         </div>
       </div>

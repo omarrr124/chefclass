@@ -1,7 +1,8 @@
-import { Utensils, Sun, Moon } from 'lucide-react'
+import { Utensils, Sun, Moon, LogOut, Globe } from 'lucide-react'
 import { useState, useEffect } from 'react'
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import { supabase } from './supabaseClient'
+import { LanguageProvider, useLanguage } from './context/LanguageContext'
 
 import Home from './pages/Home'
 import CursorTrail from './CursorTrail'
@@ -17,7 +18,15 @@ const ProtectedRoute = ({ children, session }) => {
   return children
 }
 
-const PublicLayout = ({ isLightMode, setIsLightMode }) => {
+const PublicLayout = ({ children, isLightMode, setIsLightMode, isAdmin }) => {
+  const navigate = useNavigate();
+  const { t, language, setLanguage } = useLanguage();
+
+  async function handleLogout() {
+    await supabase.auth.signOut()
+    navigate('/login')
+  }
+
   return (
     <div className="flex flex-col md:flex-row min-h-screen relative">
       <CursorTrail />
@@ -31,16 +40,26 @@ const PublicLayout = ({ isLightMode, setIsLightMode }) => {
           gap: '0.75rem',
           marginBottom: '2rem'
         }}>
-          <Utensils size={28} /> ChefClass
+          <Utensils size={28} /> {isAdmin ? t('nav.adminPanel') : 'ChefClass'}
         </div>
         <div className="flex flex-row md:flex-col gap-4 md:gap-6 overflow-x-auto pb-4 md:pb-0">
-          <a href="#home" className="nav-link whitespace-nowrap">Home</a>
-          <a href="#chef" className="nav-link whitespace-nowrap">Our Baker</a>
-          <a href="#recipes" className="nav-link whitespace-nowrap">Pastries</a>
+          <a href="/#home" className="nav-link whitespace-nowrap">{t('nav.home')}</a>
+          <a href="/#chef" className="nav-link whitespace-nowrap">{t('nav.chef')}</a>
+          <a href="/#recipes" className="nav-link whitespace-nowrap">{t('nav.pastries')}</a>
+          {isAdmin && (
+            <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--glass-border)', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <button style={{ background: 'rgba(212, 175, 55, 0.1)', color: 'var(--primary)', padding: '0.75rem 1rem', borderRadius: '8px', border: 'none', textAlign: 'left', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.75rem', whiteSpace: 'nowrap' }}>
+                <Utensils size={18} /> {t('nav.manageRecipes')}
+              </button>
+              <button onClick={handleLogout} style={{ background: 'none', color: '#ef4444', padding: '0.75rem 1rem', borderRadius: '8px', border: '1px solid #ef4444', textAlign: 'left', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                <LogOut size={18} /> {t('nav.logout')}
+              </button>
+            </div>
+          )}
         </div>
-        <div className="mt-4 md:mt-auto mb-2 md:mb-8 md:pl-4">
+        <div className="mt-4 md:mt-auto mb-2 md:mb-8 md:pl-4 flex flex-col gap-4">
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', color: 'var(--text)', opacity: 0.8, fontSize: '0.9rem', fontWeight: 600 }}>
-            <span style={{ fontSize: '0.9rem' }}>Theme</span>
+            <span style={{ fontSize: '0.9rem' }}>{t('nav.theme')}</span>
             <input 
               type="checkbox" 
               id="darkmode-toggle" 
@@ -72,6 +91,18 @@ const PublicLayout = ({ isLightMode, setIsLightMode }) => {
               </svg>
             </label>
           </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', color: 'var(--text)', opacity: 0.8, fontSize: '0.9rem', fontWeight: 600 }}>
+            <Globe size={18} />
+            <select 
+              value={language} 
+              onChange={(e) => setLanguage(e.target.value)}
+              style={{ background: 'var(--panel-bg)', color: 'var(--text)', border: '1px solid var(--glass-border)', padding: '0.2rem 0.5rem', borderRadius: '4px', outline: 'none', cursor: 'pointer' }}
+            >
+              <option value="en">English</option>
+              <option value="fr">Français</option>
+              <option value="ar">العربية</option>
+            </select>
+          </div>
         </div>
         <style>{`
           .nav-link {
@@ -92,21 +123,15 @@ const PublicLayout = ({ isLightMode, setIsLightMode }) => {
           }
         `}</style>
       </nav>
-      <main className="flex-1 relative md:ml-[280px]">
-        <div id="home" className="min-h-screen flex flex-col">
-          <Home />
-        </div>
-        <div id="chef" className="min-h-screen flex flex-col justify-center">
-          <Chef />
-        </div>
-        <div id="recipes" className="min-h-screen flex flex-col">
-          <Recipes />
+      <main className="flex-1 relative md:ml-[280px] flex flex-col">
+        <div className="flex-1 flex flex-col">
+          {children}
         </div>
         
-        <footer className="p-8 md:px-20 md:py-16 flex flex-col md:flex-row justify-between items-center gap-6 bg-[var(--panel-bg)] backdrop-blur-md border-t border-[rgba(212,175,55,0.1)]">
+        <footer className="p-8 md:px-20 md:py-16 flex flex-col md:flex-row justify-between items-center gap-6 bg-[var(--panel-bg)] backdrop-blur-md border-t border-[rgba(212,175,55,0.1)] mt-auto">
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             <div style={{ fontSize: '1.5rem', fontWeight: '700', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Utensils size={20} /> ChefClass
+              <Utensils size={20} /> {t('nav.home')}
             </div>
             <div style={{ color: 'var(--text)', opacity: 0.7, fontSize: '0.9rem' }}>
               &copy; {new Date().getFullYear()} ChefClass Patisserie. All rights reserved.
@@ -161,20 +186,38 @@ function App() {
     return () => subscription.unsubscribe()
   }, [])
 
+  const MainContent = (
+    <>
+      <div id="home" className="min-h-screen flex flex-col">
+        <Home />
+      </div>
+      <div id="chef" className="min-h-screen flex flex-col justify-center">
+        <Chef />
+      </div>
+      <div id="recipes" className="min-h-screen flex flex-col">
+        <Recipes />
+      </div>
+    </>
+  )
+
   return (
-    <Routes>
-        <Route path="/" element={<PublicLayout isLightMode={isLightMode} setIsLightMode={setIsLightMode} />} />
-        <Route path="/login" element={<Login />} />
-        <Route 
-          path="/admin" 
-          element={
-            <ProtectedRoute session={session}>
-              <AdminDashboard />
-            </ProtectedRoute>
-          } 
-        />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+    <LanguageProvider>
+      <Routes>
+          <Route path="/" element={<PublicLayout isLightMode={isLightMode} setIsLightMode={setIsLightMode}>{MainContent}</PublicLayout>} />
+          <Route path="/login" element={<PublicLayout isLightMode={isLightMode} setIsLightMode={setIsLightMode}><Login /></PublicLayout>} />
+          <Route 
+            path="/admin" 
+            element={
+              <ProtectedRoute session={session}>
+                <PublicLayout isLightMode={isLightMode} setIsLightMode={setIsLightMode} isAdmin={true}>
+                  <AdminDashboard />
+                </PublicLayout>
+              </ProtectedRoute>
+            } 
+          />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+    </LanguageProvider>
   )
 }
 

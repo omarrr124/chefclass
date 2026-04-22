@@ -1,8 +1,10 @@
 import { motion, useScroll, useTransform } from 'framer-motion'
 import { useRef } from 'react'
+import { useLanguage } from '../context/LanguageContext'
 
 export default function Chef() {
   const ref = useRef(null)
+  const { t } = useLanguage()
   
   const { scrollYProgress } = useScroll({
     target: ref,
@@ -17,23 +19,23 @@ export default function Chef() {
   return (
     <div ref={ref} className="px-6 md:px-8 max-w-[1100px] relative mx-auto flex flex-col justify-center h-full pt-16 md:pt-0">
       <motion.h1 style={{ opacity, y: yText }} className="page-title text-center text-4xl md:text-5xl mb-12">
-        Our Master Baker
+        {t('chef.title')}
       </motion.h1>
       
       <div className="flex gap-12 md:gap-16 items-center flex-wrap-reverse justify-center">
         <motion.div className="flex-1 min-w-[300px] max-w-[550px]" style={{ opacity, y: yText }}>
           <div className="glass-card p-6 md:p-10 relative z-10 border-l-4 border-[var(--primary)]">
-            <h2 className="heading" style={{ fontSize: '2.8rem', fontWeight: '600', color: 'rgb(212, 182, 60)', marginBottom: '0.2rem', lineHeight: '1.2' }}>Muhammed El-Hmandi</h2>
+            <h2 className="heading" style={{ fontSize: '2.8rem', fontWeight: '600', color: 'rgb(212, 182, 60)', marginBottom: '0.2rem', lineHeight: '1.2' }}>{t('chef.name')}</h2>
             <div style={{ fontSize: '1rem', fontStyle: 'italic', letterSpacing: '3px', color: 'var(--secondary)', textTransform: 'uppercase', marginBottom: '1.5rem', borderBottom: '2px solid rgba(212, 175, 55, 0.1)', display: 'inline-block', paddingBottom: '0.3rem' }}>
-              Pastry Chef
+              {t('chef.role')}
             </div>
             
             <div style={{ fontSize: '1.05rem', color: 'var(--text)', opacity: 0.85, lineHeight: '1.6', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <p>
-                <strong style={{ color: 'var(--primary)', fontSize: '1.15rem', fontWeight: '600' }}>Born with a passion for pastry,</strong> Muhammed El-Hmandi is a bright young talent in the world of patisserie, bringing boundless creativity and dedication to every dessert he creates. Based in Korba, Nabeul, he is at the exciting genesis of a long culinary journey.
+                <strong style={{ color: 'var(--primary)', fontSize: '1.15rem', fontWeight: '600' }}>{t('chef.bio1Start')}</strong> {t('chef.bio1Rest')}
               </p>
               <p>
-                Specializing in delicate pastries and modern techniques, Muhammed is deeply committed to refining his skills, exploring innovative flavor combinations, and consistently delivering high-quality sweet creations. His ambition and artistic flair make him a remarkable name to watch in the art of patisserie.
+                {t('chef.bio2')}
               </p>
             </div>
           </div>

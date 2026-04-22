@@ -1,8 +1,10 @@
 import { motion, useScroll, useTransform } from 'framer-motion'
 import { useRef } from 'react'
+import { useLanguage } from '../context/LanguageContext'
 
 export default function Home() {
   const ref = useRef(null)
+  const { t } = useLanguage()
   const { scrollYProgress } = useScroll({
     target: ref,
     offset: ["start start", "end start"]
@@ -27,7 +29,7 @@ export default function Home() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
         >
-          Master the Art<br/><span style={{ fontStyle: 'italic', fontWeight: 400 }}>of Baking</span>
+          {t('home.title1')}<br/><span style={{ fontStyle: 'italic', fontWeight: 400 }}>{t('home.title2')}</span>
         </motion.h1>
         <motion.p 
           style={{ color: 'var(--text)', opacity: 0.8, fontSize: 'clamp(0.9rem, 2vw, 1.15rem)', marginBottom: '2rem', maxWidth: '450px', lineHeight: '1.6' }}
@@ -35,7 +37,7 @@ export default function Home() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
         >
-          Join a refined pastry community where elegance meets technique. Master delicate pastries, artisan desserts, and fine patisserie all from your own kitchen.
+          {t('home.subtitle')}
         </motion.p>
         <motion.div 
           className="flex flex-col sm:flex-row gap-4 mb-16 xl:mb-auto"
@@ -43,8 +45,8 @@ export default function Home() {
           animate={{ opacity: 1 }}
           transition={{ duration: 1, delay: 0.4 }}
         >
-          <a href="#recipes" className="btn btn-primary shadow-lg shadow-amber-500/20 w-full sm:w-auto">Start Baking &rarr;</a>
-          <a href="#chef" className="btn btn-glass w-full sm:w-auto">Meet the Chef</a>
+          <a href="#recipes" className="btn btn-primary shadow-lg shadow-amber-500/20 w-full sm:w-auto">{t('home.startBaking')} &rarr;</a>
+          <a href="#chef" className="btn btn-glass w-full sm:w-auto">{t('home.meetChef')}</a>
         </motion.div>
         
       </div>

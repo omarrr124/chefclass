@@ -3,8 +3,10 @@ import { Trash2, Utensils, Pencil, LogOut, ChevronLeft, Plus, Image as ImageIcon
 import { SearchBar } from '@/components/ui/search-bar'
 import { supabase } from '../supabaseClient'
 import { useNavigate } from 'react-router-dom'
+import { useLanguage } from '../context/LanguageContext'
 
 export default function AdminDashboard() {
+  const { t } = useLanguage()
   const navigate = useNavigate()
   const [recipes, setRecipes] = useState([])
   const [showModal, setShowModal] = useState(false)
@@ -239,47 +241,25 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: 'var(--bg)' }}>
-      {/* Admin Sidebar */}
-      <nav style={{ width: '280px', padding: '3rem 2rem', borderRight: '1px solid var(--glass-border)', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '1.5rem', fontWeight: '700', color: 'var(--primary)', marginBottom: '3rem' }}>
-          <Utensils size={24} /> Admin Panel
-        </div>
-        
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <button style={{ background: 'rgba(212, 175, 55, 0.1)', color: 'var(--primary)', padding: '0.75rem 1rem', borderRadius: '8px', border: 'none', textAlign: 'left', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <Utensils size={18} /> Manage Recipes
-          </button>
-        </div>
-
-        <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <button onClick={() => navigate('/')} style={{ background: 'none', color: 'var(--text)', opacity: 0.8, padding: '0.75rem 1rem', borderRadius: '8px', border: 'none', textAlign: 'left', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}>
-            <ChevronLeft size={18} /> Back to Public Site
-          </button>
-          <button onClick={handleLogout} style={{ background: 'none', color: '#ef4444', padding: '0.75rem 1rem', borderRadius: '8px', border: '1px solid #ef4444', textAlign: 'left', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}>
-            <LogOut size={18} /> Log Out
-          </button>
-        </div>
-      </nav>
-
-      {/* Main Content */}
-      <main style={{ flex: 1, padding: '4rem 5rem', overflowY: 'auto' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-          <h1 className="page-title" style={{ marginBottom: 0 }}>Recipe Management</h1>
-          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-            <SearchBar 
-              placeholder="Search..." 
-              onSearch={setSearchQuery} 
-              currentQuery={searchQuery}
-            />
-            <button className="btn btn-primary" onClick={() => {
+    <div className="flex-1 relative p-6 pt-10 md:p-[4rem_5rem] flex flex-col">
+        <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6 mb-8">
+          <h1 className="page-title" style={{ marginBottom: 0, fontSize: 'clamp(2.5rem, 6vw, 3.5rem)' }}>{t('admin.recipeManagement')}</h1>
+          <div className="flex flex-col sm:flex-row gap-4 w-full xl:w-auto items-start sm:items-center">
+            <div className="w-full sm:w-auto">
+              <SearchBar 
+                placeholder={t('admin.search')}
+                onSearch={setSearchQuery} 
+                currentQuery={searchQuery}
+              />
+            </div>
+            <button className="btn btn-primary w-full sm:w-auto whitespace-nowrap" onClick={() => {
               setForm({ title: '', ingredients: '', method: '', category: '' })
               setIngredientList([{ name: '', quantity: 1, unit: 'piece', imageUrl: 'placeholder', id: Math.random().toString(36).substring(2) }])
               setEditingId(null)
               setExistingImage(null)
               setImageFile(null)
               setShowModal(true)
-            }}>+ Add Recipe</button>
+            }}>{t('admin.addRecipe')}</button>
           </div>
         </div>
 
@@ -289,7 +269,7 @@ export default function AdminDashboard() {
               onClick={() => setActiveCategory(null)}
               style={{ padding: '0.5rem 1.5rem', borderRadius: '20px', border: '1px solid var(--primary)', backgroundColor: activeCategory === null ? 'var(--primary)' : 'var(--panel-bg)', color: activeCategory === null ? 'var(--cta)' : 'var(--primary)', cursor: 'pointer', transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)', fontWeight: '600' }}
             >
-              All
+              {t('admin.all')}
             </button>
             {categories.map(c => (
               <button 
@@ -303,7 +283,7 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '3rem' }}>
+        <div className="grid gap-8 md:gap-12" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 320px), 1fr))' }}>
           {displayedRecipes.map(recipe => (
             <div key={recipe.id} className="glass-card" style={{...cardStyle, backgroundColor: 'var(--panel-solid)'}} onClick={() => { setViewRecipe(recipe); setCheckedIngredients({}); }}>
               <div style={{ position: 'absolute', top: '1rem', right: '1rem', display: 'flex', gap: '0.5rem', zIndex: 10 }}>
@@ -348,44 +328,44 @@ export default function AdminDashboard() {
                 zIndex: 10,
                 boxShadow: '0 4px 10px rgba(0, 0, 0, 0.6)'
               }}>
-                {recipe.category || 'RECIPE'}
+                {recipe.category || t('recipes.recipeTag')}
               </div>
 
               <div style={{ padding: '2.5rem 1.5rem 2rem 1.5rem', display: 'flex', flexDirection: 'column', flex: 1 }}>
                 <h3 className="heading" style={{ fontSize: '1.6rem', fontWeight: '600', color: 'var(--text)', marginBottom: '0.5rem' }}>{recipe.title}</h3>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: 'auto' }}>
                   <span style={{ fontSize: '0.8rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '1px', padding: '0.3rem 0.8rem', borderRadius: '20px', backgroundColor: recipe.difficulty === 'easy' ? 'rgba(34, 197, 94, 0.1)' : recipe.difficulty === 'hard' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(212, 175, 55, 0.1)', color: recipe.difficulty === 'easy' ? '#22c55e' : recipe.difficulty === 'hard' ? '#ef4444' : 'var(--primary)', border: `1px solid ${recipe.difficulty === 'easy' ? 'rgba(34, 197, 94, 0.3)' : recipe.difficulty === 'hard' ? 'rgba(239, 68, 68, 0.3)' : 'rgba(212, 175, 55, 0.3)'}` }}>
-                    {recipe.difficulty || 'medium'}
+                    {recipe.difficulty === 'easy' ? t('difficulty.easy') : recipe.difficulty === 'hard' ? t('difficulty.hard') : t('difficulty.medium')}
                   </span>
                 </div>
               </div>
             </div>
           ))}
-          {displayedRecipes.length === 0 && <p style={{ color: 'var(--primary)', fontSize: '1.2rem', fontWeight: '500' }}>No recipes match your criteria.</p>}
+          {displayedRecipes.length === 0 && <p style={{ color: 'var(--primary)', fontSize: '1.2rem', fontWeight: '500' }}>{t('admin.noMatch')}</p>}
         </div>
-      </main>
+
 
       {/* Editing Modals */}
       {showModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.7)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
-          <div className="glass-card" style={{ backgroundColor: 'var(--panel-solid)', padding: '3rem', width: '90%', maxWidth: '550px', border: '1px solid var(--glass-border)', position: 'relative', borderRadius: '24px', maxHeight: '90vh', overflowY: 'auto' }}>
+          <div className="glass-card p-6 sm:p-8 md:p-12 w-[95%] sm:w-[90%]" style={{ backgroundColor: 'var(--panel-solid)', maxWidth: '550px', border: '1px solid var(--glass-border)', position: 'relative', borderRadius: '24px', maxHeight: '90vh', overflowY: 'auto' }}>
             <button onClick={() => setShowModal(false)} style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', fontSize: '2rem', background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', opacity: 0.7 }}>&times;</button>
-            <h2 className="heading" style={{ fontSize: '2.5rem', color: 'var(--primary)', fontWeight: '600', marginBottom: '1.5rem' }}>{editingId ? 'Edit Recipe' : 'Add a Recipe'}</h2>
+            <h2 className="heading text-3xl md:text-[2.5rem]" style={{ color: 'var(--primary)', fontWeight: '600', marginBottom: '1.5rem' }}>{editingId ? t('admin.editRecipe') : t('admin.addARecipe')}</h2>
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               <div>
-                <label style={{ display: 'block', fontWeight: '600', color: 'var(--primary)', marginBottom: '0.4rem' }}>Title</label>
+                <label style={{ display: 'block', fontWeight: '600', color: 'var(--primary)', marginBottom: '0.4rem' }}>{t('admin.title')}</label>
                 <input required type="text" value={form.title} onChange={e => setForm({...form, title: e.target.value})} style={{ width: '100%', padding: '0.8rem 1rem', borderRadius: '8px', border: '1px solid rgba(212, 175, 55, 0.3)', backgroundColor: 'var(--input-bg)', fontFamily: 'inherit', color: 'var(--text)' }} />
               </div>
               <div>
-                <label style={{ display: 'block', fontWeight: '600', color: 'var(--primary)', marginBottom: '0.4rem' }}>{editingId ? 'Update Photo (Optional)' : 'Upload Photo (Optional)'}</label>
+                <label style={{ display: 'block', fontWeight: '600', color: 'var(--primary)', marginBottom: '0.4rem' }}>{editingId ? t('admin.updatePhoto') : t('admin.uploadPhoto')}</label>
                 <input type="file" accept="image/*" onChange={e => setImageFile(e.target.files[0])} style={{ width: '100%', padding: '0.6rem', borderRadius: '8px', border: '1px solid rgba(212, 175, 55, 0.3)', backgroundColor: 'var(--input-bg)', fontFamily: 'inherit', color: 'var(--text)' }} />
               </div>
               <div>
-                <label style={{ display: 'block', fontWeight: '600', color: 'var(--primary)', marginBottom: '0.4rem' }}>Category</label>
+                <label style={{ display: 'block', fontWeight: '600', color: 'var(--primary)', marginBottom: '0.4rem' }}>{t('admin.category')}</label>
                 {!isAddingCat ? (
                   <div style={{ display: 'flex', gap: '0.5rem' }}>
                     <select required value={form.category} onChange={e => setForm({...form, category: e.target.value})} style={{ flex: 1, padding: '0.8rem 1rem', borderRadius: '8px', border: '1px solid rgba(212, 175, 55, 0.3)', backgroundColor: 'var(--input-bg)', fontFamily: 'inherit', color: 'var(--text)' }}>
-                      <option value="" disabled>Select a category</option>
+                      <option value="" disabled>{t('admin.selectCategory')}</option>
                       {categories.map(c => (
                         <option key={c.id} value={c.name}>{c.name}</option>
                       ))}
@@ -401,7 +381,7 @@ export default function AdminDashboard() {
                         <Trash2 size={16} />
                       </button>
                     )}
-                    <button type="button" onClick={() => setIsAddingCat(true)} className="btn" style={{ padding: '0 1rem', border: '1px dashed rgba(212, 175, 55, 0.5)', backgroundColor: 'rgba(30, 35, 40, 0.5)', color: 'var(--primary)', borderRadius: '8px', cursor: 'pointer', fontSize: '0.9rem' }}>+ Add New</button>
+                    <button type="button" onClick={() => setIsAddingCat(true)} className="btn" style={{ padding: '0 1rem', border: '1px dashed rgba(212, 175, 55, 0.5)', backgroundColor: 'rgba(30, 35, 40, 0.5)', color: 'var(--primary)', borderRadius: '8px', cursor: 'pointer', fontSize: '0.9rem' }}>{t('admin.addNew')}</button>
                   </div>
                 ) : (
                   <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -409,31 +389,31 @@ export default function AdminDashboard() {
                       type="text" 
                       value={newCat} 
                       onChange={e => setNewCat(e.target.value)} 
-                      placeholder="New Category Name"
+                      placeholder={t('admin.newCategoryName')}
                       style={{ flex: 1, padding: '0.8rem 1rem', borderRadius: '8px', border: '1px solid rgba(212, 175, 55, 0.3)', backgroundColor: 'var(--input-bg)', fontFamily: 'inherit', color: 'var(--text)' }} 
                     />
-                    <button type="button" onClick={handleAddCategory} className="btn btn-primary" style={{ padding: '0 1rem', borderRadius: '8px', cursor: 'pointer', fontSize: '0.9rem' }}>Save</button>
-                    <button type="button" onClick={() => setIsAddingCat(false)} className="btn" style={{ padding: '0 1rem', border: '1px solid rgba(212, 175, 55, 0.3)', backgroundColor: 'transparent', color: 'var(--primary)', borderRadius: '8px', cursor: 'pointer', fontSize: '0.9rem' }}>Cancel</button>
+                    <button type="button" onClick={handleAddCategory} className="btn btn-primary" style={{ padding: '0 1rem', borderRadius: '8px', cursor: 'pointer', fontSize: '0.9rem' }}>{t('admin.save')}</button>
+                    <button type="button" onClick={() => setIsAddingCat(false)} className="btn" style={{ padding: '0 1rem', border: '1px solid rgba(212, 175, 55, 0.3)', backgroundColor: 'transparent', color: 'var(--primary)', borderRadius: '8px', cursor: 'pointer', fontSize: '0.9rem' }}>{t('admin.cancel')}</button>
                   </div>
                 )}
               </div>
               <div>
-                <label style={{ display: 'block', fontWeight: '600', color: 'var(--primary)', marginBottom: '0.4rem' }}>Difficulty</label>
+                <label style={{ display: 'block', fontWeight: '600', color: 'var(--primary)', marginBottom: '0.4rem' }}>{t('admin.difficulty')}</label>
                 <select 
                   value={form.difficulty} 
                   onChange={e => setForm({...form, difficulty: e.target.value})} 
                   style={{ width: '100%', padding: '0.8rem 1rem', borderRadius: '8px', border: '1px solid rgba(212, 175, 55, 0.3)', backgroundColor: 'var(--input-bg)', color: 'var(--text)', fontSize: '0.9rem', outline: 'none' }}
                 >
-                  <option value="easy">Easy</option>
-                  <option value="medium">Medium</option>
-                  <option value="hard">Hard</option>
+                  <option value="easy">{t('admin.easy')}</option>
+                  <option value="medium">{t('admin.medium')}</option>
+                  <option value="hard">{t('admin.hard')}</option>
                 </select>
               </div>
               <div>
                 <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: '600', color: 'var(--primary)', marginBottom: '0.4rem' }}>
-                  Ingredients
+                  {t('admin.ingredients')}
                   <button type="button" onClick={() => setIngredientList([...ingredientList, { name: '', quantity: 1, unit: 'piece', imageUrl: 'placeholder', id: Math.random().toString(36).substring(2) }])} style={{ background: 'rgba(212, 175, 55, 0.1)', border: '1px solid var(--primary)', color: 'var(--primary)', borderRadius: '20px', padding: '0.2rem 0.8rem', fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                    <Plus size={14} /> Add Items
+                    <Plus size={14} /> {t('admin.addItems')}
                   </button>
                 </label>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxHeight: '300px', overflowY: 'auto', paddingRight: '0.5rem' }}>
@@ -457,19 +437,19 @@ export default function AdminDashboard() {
                       </div>
                       <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '0.5rem', alignItems: 'start' }}>
                         <div>
-                          <label style={{ fontSize: '0.75rem', color: 'var(--text)', opacity: 0.7 }}>Name</label>
+                          <label style={{ fontSize: '0.75rem', color: 'var(--text)', opacity: 0.7 }}>{t('admin.name')}</label>
                           <input required type="text" placeholder="e.g. Flour" value={ing.name} onChange={e => {
                             const newList = [...ingredientList]; newList[idx].name = e.target.value; setIngredientList(newList);
                           }} style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--glass-border)', backgroundColor: 'var(--input-bg)', color: 'var(--text)', fontSize: '0.9rem' }} />
                         </div>
                         <div>
-                          <label style={{ fontSize: '0.75rem', color: 'var(--text)', opacity: 0.7 }}>Qty</label>
+                          <label style={{ fontSize: '0.75rem', color: 'var(--text)', opacity: 0.7 }}>{t('admin.qty')}</label>
                           <input required type="number" min="0" step="0.1" value={ing.quantity} onChange={e => {
                             const newList = [...ingredientList]; newList[idx].quantity = e.target.value; setIngredientList(newList);
                           }} style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--glass-border)', backgroundColor: 'var(--input-bg)', color: 'var(--text)', fontSize: '0.9rem' }} />
                         </div>
                         <div>
-                          <label style={{ fontSize: '0.75rem', color: 'var(--text)', opacity: 0.7 }}>Unit</label>
+                          <label style={{ fontSize: '0.75rem', color: 'var(--text)', opacity: 0.7 }}>{t('admin.unit')}</label>
                           <select value={ing.unit} onChange={e => {
                             const newList = [...ingredientList]; newList[idx].unit = e.target.value; setIngredientList(newList);
                           }} style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--glass-border)', backgroundColor: 'var(--input-bg)', color: 'var(--text)', fontSize: '0.9rem' }}>
@@ -498,9 +478,9 @@ export default function AdminDashboard() {
               </div>
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
-                  <label style={{ fontWeight: '600', color: 'var(--primary)' }}>Method</label>
+                  <label style={{ fontWeight: '600', color: 'var(--primary)' }}>{t('admin.method')}</label>
                   <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <span style={{ fontSize: '0.75rem', opacity: 0.6, marginRight: '0.5rem', display: 'flex', alignItems: 'center' }}>Highlight text and click:</span>
+                    <span style={{ fontSize: '0.75rem', opacity: 0.6, marginRight: '0.5rem', display: 'flex', alignItems: 'center' }}>{t('admin.highlightText')}</span>
                     <button type="button" onClick={() => insertTag('**', '**')} style={{ padding: '0.2rem 0.6rem', fontSize: '0.8rem', fontWeight: 'bold', background: 'var(--panel-bg)', color: 'var(--text)', border: '1px solid var(--glass-border)', borderRadius: '4px', cursor: 'pointer' }} title="Bold (Fat)">B</button>
                     <button type="button" onClick={() => insertTag('__', '__')} style={{ padding: '0.2rem 0.6rem', fontSize: '0.8rem', textDecoration: 'underline', background: 'var(--panel-bg)', color: 'var(--text)', border: '1px solid var(--glass-border)', borderRadius: '4px', cursor: 'pointer' }} title="Underline">U</button>
                     <button type="button" onClick={() => insertTag('$$', '$$')} style={{ padding: '0.2rem 0.6rem', fontSize: '0.8rem', color: '#d4af37', background: 'var(--panel-bg)', border: '1px solid var(--glass-border)', borderRadius: '4px', cursor: 'pointer' }} title="Gold Highlight">Hue</button>
@@ -509,7 +489,7 @@ export default function AdminDashboard() {
                 <textarea ref={methodRef} required value={form.method} onChange={e => setForm({...form, method: e.target.value})} rows={5} style={{ width: '100%', padding: '0.8rem 1rem', borderRadius: '8px', border: '1px solid rgba(212, 175, 55, 0.3)', backgroundColor: 'var(--input-bg)', fontFamily: 'inherit', color: 'var(--text)', lineHeight: '1.5' }} />
                 {form.method.trim().length > 0 && (
                   <div style={{ marginTop: '0.5rem', padding: '1rem', background: 'rgba(0,0,0,0.2)', borderRadius: '8px', border: '1px solid rgba(212, 175, 55, 0.1)' }}>
-                    <h4 style={{ fontSize: '0.75rem', color: 'var(--primary)', marginBottom: '0.8rem', opacity: 0.8, textTransform: 'uppercase', letterSpacing: '1px' }}>Live Preview</h4>
+                    <h4 style={{ fontSize: '0.75rem', color: 'var(--primary)', marginBottom: '0.8rem', opacity: 0.8, textTransform: 'uppercase', letterSpacing: '1px' }}>{t('admin.livePreview')}</h4>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
                       {form.method.split('\n').filter(line => line.trim()).map((step, idx) => (
                         <div key={idx} style={{ display: 'flex', gap: '1rem' }}>
@@ -523,7 +503,7 @@ export default function AdminDashboard() {
                   </div>
                 )}
               </div>
-              <button type="submit" className="btn btn-primary" style={{ marginTop: '1rem', border: 'none' }}>{editingId ? 'Save Changes' : 'Publish Recipe'}</button>
+              <button type="submit" className="btn btn-primary" style={{ marginTop: '1rem', border: 'none' }}>{editingId ? t('admin.saveChanges') : t('admin.publishRecipe')}</button>
             </form>
           </div>
         </div>
@@ -531,23 +511,23 @@ export default function AdminDashboard() {
 
       {recipeToDelete && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.7)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
-          <div className="glass-card" style={{ backgroundColor: 'var(--panel-solid)', padding: '3rem', width: '90%', maxWidth: '400px', border: '1px solid var(--glass-border)', borderRadius: '24px', textAlign: 'center' }}>
-            <h2 className="heading" style={{ fontSize: '2rem', color: 'var(--primary)', fontWeight: '600', marginBottom: '1rem' }}>Delete Recipe?</h2>
-            <p style={{ color: 'var(--text)', marginBottom: '2rem', opacity: 0.8 }}>This action cannot be undone. Are you absolutely sure?</p>
+          <div className="glass-card p-6 sm:p-8 md:p-12 w-[95%] sm:w-[90%]" style={{ backgroundColor: 'var(--panel-solid)', maxWidth: '400px', border: '1px solid var(--glass-border)', borderRadius: '24px', textAlign: 'center' }}>
+            <h2 className="heading text-2xl md:text-[2rem]" style={{ color: 'var(--primary)', fontWeight: '600', marginBottom: '1rem' }}>{t('admin.deleteRecipe')}</h2>
+            <p style={{ color: 'var(--text)', marginBottom: '2rem', opacity: 0.8 }}>{t('admin.deleteRecipeConfirm')}</p>
             <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
               <button 
                 onClick={() => setRecipeToDelete(null)} 
                 className="btn"
                 style={{ backgroundColor: 'rgba(212, 175, 55, 0.1)', color: 'var(--primary)', border: '1px solid rgba(212, 175, 55, 0.3)' }}
               >
-                Cancel
+                {t('admin.cancel')}
               </button>
               <button 
                 onClick={confirmDelete} 
                 className="btn btn-primary"
                 style={{ backgroundColor: '#ef4444', border: 'none' }}
               >
-                Delete
+                {t('admin.delete')}
               </button>
             </div>
           </div>
@@ -556,23 +536,23 @@ export default function AdminDashboard() {
 
       {categoryToDelete && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.7)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 105 }}>
-          <div className="glass-card" style={{ backgroundColor: 'var(--panel-solid)', padding: '3rem', width: '90%', maxWidth: '400px', border: '1px solid var(--glass-border)', borderRadius: '24px', textAlign: 'center' }}>
-            <h2 className="heading" style={{ fontSize: '2rem', color: 'var(--primary)', fontWeight: '600', marginBottom: '1rem' }}>Delete Category?</h2>
-            <p style={{ color: 'var(--text)', marginBottom: '2rem', opacity: 0.8 }}>Removing "{categoryToDelete}" will erase it from the dropdown choices forever. Any recipes in this category will be moved to "UNCATEGORIZED". Are you sure?</p>
+          <div className="glass-card p-6 sm:p-8 md:p-12 w-[95%] sm:w-[90%]" style={{ backgroundColor: 'var(--panel-solid)', maxWidth: '400px', border: '1px solid var(--glass-border)', borderRadius: '24px', textAlign: 'center' }}>
+            <h2 className="heading text-2xl md:text-[2rem]" style={{ color: 'var(--primary)', fontWeight: '600', marginBottom: '1rem' }}>{t('admin.deleteCategory')}</h2>
+            <p style={{ color: 'var(--text)', marginBottom: '2rem', opacity: 0.8 }}>{t('admin.deleteCategoryConfirm')}</p>
             <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
               <button 
                 onClick={() => setCategoryToDelete(null)} 
                 className="btn"
                 style={{ backgroundColor: 'rgba(212, 175, 55, 0.1)', color: 'var(--primary)', border: '1px solid rgba(212, 175, 55, 0.3)' }}
               >
-                Cancel
+                {t('admin.cancel')}
               </button>
               <button 
                 onClick={confirmDeleteCategory} 
                 className="btn btn-primary"
                 style={{ backgroundColor: '#ef4444', border: 'none' }}
               >
-                Delete
+                {t('admin.delete')}
               </button>
             </div>
           </div>
@@ -582,7 +562,7 @@ export default function AdminDashboard() {
       {/* Recipe Preview Modal */}
       {viewRecipe && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.7)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }} onClick={() => setViewRecipe(null)}>
-          <div className="glass-card" onClick={e => e.stopPropagation()} style={{ backgroundColor: 'var(--panel-solid)', width: '90%', maxWidth: '800px', maxHeight: '90vh', overflowY: 'auto', border: '1px solid var(--glass-border)', borderRadius: '24px', display: 'flex', flexDirection: 'column', padding: 0 }}>
+          <div className="glass-card w-[95%] sm:w-[90%]" onClick={e => e.stopPropagation()} style={{ backgroundColor: 'var(--panel-solid)', maxWidth: '800px', maxHeight: '90vh', overflowY: 'auto', border: '1px solid var(--glass-border)', borderRadius: '24px', display: 'flex', flexDirection: 'column', padding: 0 }}>
             <div style={{ position: 'relative' }}>
               <div style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', display: 'flex', gap: '0.5rem', zIndex: 20 }}>
                 <button 
@@ -604,16 +584,16 @@ export default function AdminDashboard() {
                 />
               )}
               <div style={{ position: 'absolute', bottom: '-15px', left: '2.5rem', backgroundColor: 'var(--secondary)', color: 'var(--cta)', padding: '0.4rem 1.2rem', borderRadius: '20px', fontWeight: '700', fontSize: '0.85rem', letterSpacing: '1px', textTransform: 'uppercase', boxShadow: '0 4px 10px rgba(0, 0, 0, 0.6)' }}>
-                {viewRecipe.category || 'RECIPE'}
+                {viewRecipe.category || t('recipes.recipeTag')}
               </div>
             </div>
             
-            <div style={{ padding: '3.5rem 2.5rem 2.5rem 2.5rem' }}>
-              <h2 className="heading" style={{ fontSize: '2.5rem', color: 'var(--text)', fontWeight: '700', marginBottom: '2rem' }}>{viewRecipe.title}</h2>
+            <div className="p-6 md:p-10 pt-14 md:pt-14">
+              <h2 className="heading text-3xl md:text-[2.5rem]" style={{ color: 'var(--text)', fontWeight: '700', marginBottom: '2rem' }}>{viewRecipe.title}</h2>
               
               <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: '2.5rem' }}>
                 <div style={{ backgroundColor: 'var(--panel-bg)', borderRadius: '16px', padding: '2rem', border: '1px solid rgba(212, 175, 55, 0.15)' }}>
-                  <h3 style={{ fontSize: '1.3rem', color: 'var(--primary)', fontWeight: '600', marginBottom: '1.5rem', borderBottom: '1px solid rgba(212, 175, 55, 0.2)', paddingBottom: '0.5rem', letterSpacing: '2px', textTransform: 'uppercase' }}>Ingredients</h3>
+                  <h3 style={{ fontSize: '1.3rem', color: 'var(--primary)', fontWeight: '600', marginBottom: '1.5rem', borderBottom: '1px solid rgba(212, 175, 55, 0.2)', paddingBottom: '0.5rem', letterSpacing: '2px', textTransform: 'uppercase' }}>{t('recipes.ingredients')}</h3>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
                     {(() => {
                       let parsedIngredients = [];
@@ -659,7 +639,7 @@ export default function AdminDashboard() {
                 </div>
                 
                 <div style={{ padding: '0 1rem' }}>
-                  <h3 style={{ fontSize: '1.3rem', color: 'var(--primary)', fontWeight: '600', marginBottom: '1.5rem', borderBottom: '1px solid rgba(212, 175, 55, 0.2)', paddingBottom: '0.5rem', letterSpacing: '2px', textTransform: 'uppercase' }}>Method</h3>
+                  <h3 style={{ fontSize: '1.3rem', color: 'var(--primary)', fontWeight: '600', marginBottom: '1.5rem', borderBottom: '1px solid rgba(212, 175, 55, 0.2)', paddingBottom: '0.5rem', letterSpacing: '2px', textTransform: 'uppercase' }}>{t('recipes.method')}</h3>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                     {viewRecipe.method.split('\n').filter(line => line.trim()).map((step, idx) => (
                       <div key={idx} style={{ display: 'flex', gap: '1.5rem' }}>
