@@ -84,7 +84,8 @@ export const translations = {
       deleteRecipeConfirm: 'This action cannot be undone. Are you absolutely sure?',
       delete: 'Delete',
       deleteCategory: 'Delete Category?',
-      deleteCategoryConfirm: 'Removing this category will erase it from the dropdown choices forever. Any recipes in this category will be moved to "UNCATEGORIZED". Are you sure?'
+      deleteCategoryConfirm: 'Removing this category will erase it from the dropdown choices forever. Any recipes in this category will be moved to "UNCATEGORIZED". Are you sure?',
+      translating: 'Translating & Saving...'
     }
   },
   fr: {
@@ -172,7 +173,8 @@ export const translations = {
       deleteRecipeConfirm: 'Cette action est irréversible. Êtes-vous absolument sûr ?',
       delete: 'Supprimer',
       deleteCategory: 'Supprimer la catégorie ?',
-      deleteCategoryConfirm: 'La suppression de cette catégorie l\'effacera des choix de la liste déroulante pour toujours. Toutes les recettes de cette catégorie seront déplacées vers "NON CATÉGORISÉ". Êtes-vous sûr ?'
+      deleteCategoryConfirm: 'La suppression de cette catégorie l\'effacera des choix de la liste déroulante pour toujours. Toutes les recettes de cette catégorie seront déplacées vers "NON CATÉGORISÉ". Êtes-vous sûr ?',
+      translating: 'Traduction et Sauvegarde...'
     }
   },
   ar: {
@@ -260,7 +262,8 @@ export const translations = {
       deleteRecipeConfirm: 'هذا الإجراء لا يمكن التراجع عنه. هل أنت متأكد تمامًا؟',
       delete: 'حذف',
       deleteCategory: 'حذف الفئة؟',
-      deleteCategoryConfirm: 'إزالة هذه الفئة سيمسحها من خيارات القائمة المنسدلة إلى الأبد. سيتم نقل أي وصفات في هذه الفئة إلى "غير مصنف". هل أنت متأكد؟'
+      deleteCategoryConfirm: 'إزالة هذه الفئة سيمسحها من خيارات القائمة المنسدلة إلى الأبد. سيتم نقل أي وصفات في هذه الفئة إلى "غير مصنف". هل أنت متأكد؟',
+      translating: 'جاري الترجمة والحفظ...'
     }
   }
 };

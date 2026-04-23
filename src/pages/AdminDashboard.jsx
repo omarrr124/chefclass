@@ -6,12 +6,17 @@ import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../context/LanguageContext'
 
 export default function AdminDashboard() {
-  const { t } = useLanguage()
+  const { t, language } = useLanguage()
   const navigate = useNavigate()
   const [recipes, setRecipes] = useState([])
   const [showModal, setShowModal] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+  const [activeLangTab, setActiveLangTab] = useState('en')
 
-  const [form, setForm] = useState({ title: '', ingredients: '', method: '', category: '', difficulty: 'medium' })
+  const [form, setForm] = useState({ 
+    title: '', method: '', category: '', difficulty: 'medium',
+    title_fr: '', title_ar: '', method_fr: '', method_ar: ''
+  })
   const methodRef = useRef(null)
 
   const insertTag = (tagStart, tagEnd) => {
@@ -78,38 +83,54 @@ export default function AdminDashboard() {
   function openEditModal(recipe) {
     setForm({
       title: recipe.title,
-      ingredients: recipe.ingredients,
+      title_fr: recipe.title_fr || '',
+      title_ar: recipe.title_ar || '',
       method: recipe.method,
+      method_fr: recipe.method_fr || '',
+      method_ar: recipe.method_ar || '',
       category: recipe.category,
       difficulty: recipe.difficulty || 'medium'
     })
     
-    let parsedIngredients = [];
-    try {
-      if (recipe.ingredients && recipe.ingredients.trim().startsWith('[')) {
-        parsedIngredients = JSON.parse(recipe.ingredients);
-      } else {
-        parsedIngredients = (recipe.ingredients || '').split('\n').filter(l => l.trim()).map(line => ({
-          name: line.trim(),
-          quantity: 1,
-          unit: 'piece',
-          imageUrl: 'placeholder',
-          id: Math.random().toString(36).substring(2)
-        }));
-      }
-    } catch {
-      parsedIngredients = [];
-    }
-    setIngredientList(parsedIngredients.length > 0 ? parsedIngredients : [{ name: '', quantity: 1, unit: 'piece', imageUrl: 'placeholder', id: Math.random().toString(36).substring(2) }]);
+    let ingEn = [], ingFr = [], ingAr = [];
+    try { ingEn = recipe.ingredients ? JSON.parse(recipe.ingredients) : []; } catch {}
+    try { ingFr = recipe.ingredients_fr ? JSON.parse(recipe.ingredients_fr) : []; } catch {}
+    try { ingAr = recipe.ingredients_ar ? JSON.parse(recipe.ingredients_ar) : []; } catch {}
 
+    if (ingEn.length === 0) {
+      try {
+        const lines = (recipe.ingredients || '').split('\n').filter(l => l.trim());
+        ingEn = lines.map(line => ({ name: line.trim(), quantity: 1, unit: 'piece', id: Math.random().toString(36).substring(2) }));
+      } catch {}
+    }
+
+    const unifiedList = ingEn.length > 0 ? ingEn.map((ing, idx) => {
+      const frIng = ingFr[idx] || {};
+      const arIng = ingAr[idx] || {};
+      return {
+        id: ing.id || Math.random().toString(36).substring(2),
+        name: ing.name || '',
+        name_fr: frIng.name || '',
+        name_ar: arIng.name || '',
+        quantity: ing.quantity || 1,
+        unit: ing.unit || 'piece',
+        unit_fr: frIng.unit || ing.unit || 'piece',
+        unit_ar: arIng.unit || ing.unit || 'piece',
+        imageUrl: ing.imageUrl || 'placeholder'
+      }
+    }) : [{ name: '', name_fr: '', name_ar: '', quantity: 1, unit: 'piece', unit_fr: 'piece', unit_ar: 'piece', imageUrl: 'placeholder', id: Math.random().toString(36).substring(2) }];
+
+    setIngredientList(unifiedList)
     setEditingId(recipe.id)
     setExistingImage(recipe.image_url)
     setImageFile(null)
+    setActiveLangTab('en')
     setShowModal(true)
   }
 
   async function handleSubmit(e) {
     e.preventDefault()
+    setIsSaving(true)
     let image_url = editingId ? existingImage : 'placeholder'
     
     if (imageFile) {
@@ -129,8 +150,12 @@ export default function AdminDashboard() {
       }
     }
 
+    const processedEn = [];
+    const processedFr = [];
+    const processedAr = [];
+
     // Process Ingredients
-    const processedIngredients = await Promise.all(ingredientList.map(async (ing) => {
+    for (let ing of ingredientList) {
       let ingImageUrl = ing.imageUrl || 'placeholder';
       if (ing.imageFile) {
         const fileExt = ing.imageFile.name.split('.').pop()
@@ -146,17 +171,24 @@ export default function AdminDashboard() {
           ingImageUrl = publicUrlData.publicUrl
         }
       }
-      return { 
-        id: ing.id || Math.random().toString(36).substring(2),
-        name: ing.name, 
-        quantity: parseFloat(ing.quantity) || 1, 
-        unit: ing.unit, 
-        imageUrl: ingImageUrl 
-      };
-    }));
+      
+      const base = { id: ing.id || Math.random().toString(36).substring(2), quantity: parseFloat(ing.quantity) || 1, imageUrl: ingImageUrl };
+      processedEn.push({ ...base, name: ing.name, unit: ing.unit });
+      processedFr.push({ ...base, name: ing.name_fr || ing.name, unit: ing.unit_fr || ing.unit });
+      processedAr.push({ ...base, name: ing.name_ar || ing.name, unit: ing.unit_ar || ing.unit });
+    }
 
-    const finalIngredientsString = JSON.stringify(processedIngredients);
-    const payload = { ...form, ingredients: finalIngredientsString, image_url }
+    const finalIngredientsString = JSON.stringify(processedEn);
+    const finalIngredientsString_fr = JSON.stringify(processedFr);
+    const finalIngredientsString_ar = JSON.stringify(processedAr);
+
+    const payload = { 
+      ...form, 
+      ingredients: finalIngredientsString, 
+      image_url,
+      ingredients_fr: finalIngredientsString_fr,
+      ingredients_ar: finalIngredientsString_ar
+    }
 
     if (editingId) {
       await supabase.from('recipes').update(payload).eq('id', editingId)
@@ -164,8 +196,12 @@ export default function AdminDashboard() {
       await supabase.from('recipes').insert([payload])
     }
 
+    setIsSaving(false)
     setShowModal(false)
-    setForm({ title: '', ingredients: '', method: '', category: '', difficulty: 'medium' })
+    setForm({ 
+      title: '', method: '', category: '', difficulty: 'medium',
+      title_fr: '', title_ar: '', method_fr: '', method_ar: ''
+    })
     setIngredientList([])
     setImageFile(null)
     setEditingId(null)
@@ -332,7 +368,7 @@ export default function AdminDashboard() {
               </div>
 
               <div style={{ padding: '2.5rem 1.5rem 2rem 1.5rem', display: 'flex', flexDirection: 'column', flex: 1 }}>
-                <h3 className="heading" style={{ fontSize: '1.6rem', fontWeight: '600', color: 'var(--text)', marginBottom: '0.5rem' }}>{recipe.title}</h3>
+                <h3 className="heading" style={{ fontSize: '1.6rem', fontWeight: '600', color: 'var(--text)', marginBottom: '0.5rem' }}>{recipe[`title_${language}`] || recipe.title}</h3>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: 'auto' }}>
                   <span style={{ fontSize: '0.8rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '1px', padding: '0.3rem 0.8rem', borderRadius: '20px', backgroundColor: recipe.difficulty === 'easy' ? 'rgba(34, 197, 94, 0.1)' : recipe.difficulty === 'hard' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(212, 175, 55, 0.1)', color: recipe.difficulty === 'easy' ? '#22c55e' : recipe.difficulty === 'hard' ? '#ef4444' : 'var(--primary)', border: `1px solid ${recipe.difficulty === 'easy' ? 'rgba(34, 197, 94, 0.3)' : recipe.difficulty === 'hard' ? 'rgba(239, 68, 68, 0.3)' : 'rgba(212, 175, 55, 0.3)'}` }}>
                     {recipe.difficulty === 'easy' ? t('difficulty.easy') : recipe.difficulty === 'hard' ? t('difficulty.hard') : t('difficulty.medium')}
@@ -351,10 +387,32 @@ export default function AdminDashboard() {
           <div className="glass-card p-6 sm:p-8 md:p-12 w-[95%] sm:w-[90%]" style={{ backgroundColor: 'var(--panel-solid)', maxWidth: '550px', border: '1px solid var(--glass-border)', position: 'relative', borderRadius: '24px', maxHeight: '90vh', overflowY: 'auto' }}>
             <button onClick={() => setShowModal(false)} style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', fontSize: '2rem', background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', opacity: 0.7 }}>&times;</button>
             <h2 className="heading text-3xl md:text-[2.5rem]" style={{ color: 'var(--primary)', fontWeight: '600', marginBottom: '1.5rem' }}>{editingId ? t('admin.editRecipe') : t('admin.addARecipe')}</h2>
+            
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+              <div style={{ display: 'flex', gap: '0.5rem', backgroundColor: 'rgba(0,0,0,0.2)', padding: '0.3rem', borderRadius: '24px', border: '1px solid rgba(212, 175, 55, 0.2)' }}>
+                {['en', 'fr', 'ar'].map(lang => (
+                  <button 
+                    key={lang} type="button" 
+                    onClick={() => setActiveLangTab(lang)} 
+                    style={{ padding: '0.4rem 1.2rem', borderRadius: '20px', border: 'none', backgroundColor: activeLangTab === lang ? 'var(--primary)' : 'transparent', color: activeLangTab === lang ? 'var(--cta)' : 'var(--text)', fontWeight: '600', textTransform: 'uppercase', cursor: 'pointer', transition: 'all 0.2s' }}
+                  >
+                    {lang}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               <div>
-                <label style={{ display: 'block', fontWeight: '600', color: 'var(--primary)', marginBottom: '0.4rem' }}>{t('admin.title')}</label>
-                <input required type="text" value={form.title} onChange={e => setForm({...form, title: e.target.value})} style={{ width: '100%', padding: '0.8rem 1rem', borderRadius: '8px', border: '1px solid rgba(212, 175, 55, 0.3)', backgroundColor: 'var(--input-bg)', fontFamily: 'inherit', color: 'var(--text)' }} />
+                <label style={{ display: 'block', fontWeight: '600', color: 'var(--primary)', marginBottom: '0.4rem' }}>{t('admin.title')} ({activeLangTab.toUpperCase()})</label>
+                <input required type="text" 
+                  value={activeLangTab === 'en' ? form.title : form[`title_${activeLangTab}`]} 
+                  onChange={e => {
+                    if (activeLangTab === 'en') setForm({...form, title: e.target.value})
+                    else setForm({...form, [`title_${activeLangTab}`]: e.target.value})
+                  }} 
+                  style={{ width: '100%', padding: '0.8rem 1rem', borderRadius: '8px', border: '1px solid rgba(212, 175, 55, 0.3)', backgroundColor: 'var(--input-bg)', fontFamily: 'inherit', color: 'var(--text)' }} 
+                />
               </div>
               <div>
                 <label style={{ display: 'block', fontWeight: '600', color: 'var(--primary)', marginBottom: '0.4rem' }}>{editingId ? t('admin.updatePhoto') : t('admin.uploadPhoto')}</label>
@@ -437,9 +495,12 @@ export default function AdminDashboard() {
                       </div>
                       <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '0.5rem', alignItems: 'start' }}>
                         <div>
-                          <label style={{ fontSize: '0.75rem', color: 'var(--text)', opacity: 0.7 }}>{t('admin.name')}</label>
-                          <input required type="text" placeholder="e.g. Flour" value={ing.name} onChange={e => {
-                            const newList = [...ingredientList]; newList[idx].name = e.target.value; setIngredientList(newList);
+                          <label style={{ fontSize: '0.75rem', color: 'var(--text)', opacity: 0.7 }}>{t('admin.name')} ({activeLangTab.toUpperCase()})</label>
+                          <input required type="text" placeholder="e.g. Flour" value={activeLangTab === 'en' ? ing.name : ing[`name_${activeLangTab}`]} onChange={e => {
+                            const newList = [...ingredientList]; 
+                            if (activeLangTab === 'en') newList[idx].name = e.target.value; 
+                            else newList[idx][`name_${activeLangTab}`] = e.target.value;
+                            setIngredientList(newList);
                           }} style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--glass-border)', backgroundColor: 'var(--input-bg)', color: 'var(--text)', fontSize: '0.9rem' }} />
                         </div>
                         <div>
@@ -449,20 +510,26 @@ export default function AdminDashboard() {
                           }} style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--glass-border)', backgroundColor: 'var(--input-bg)', color: 'var(--text)', fontSize: '0.9rem' }} />
                         </div>
                         <div>
-                          <label style={{ fontSize: '0.75rem', color: 'var(--text)', opacity: 0.7 }}>{t('admin.unit')}</label>
-                          <select value={ing.unit} onChange={e => {
-                            const newList = [...ingredientList]; newList[idx].unit = e.target.value; setIngredientList(newList);
-                          }} style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--glass-border)', backgroundColor: 'var(--input-bg)', color: 'var(--text)', fontSize: '0.9rem' }}>
-                            <option value="grm">grm</option>
-                            <option value="kg">kg</option>
-                            <option value="ml">ml</option>
-                            <option value="L">L</option>
-                            <option value="spoon">spoon</option>
-                            <option value="piece">piece</option>
-                            <option value="cup">cup</option>
-                            <option value="pinch">pinch</option>
-                            <option value="to taste">to taste</option>
-                          </select>
+                          <label style={{ fontSize: '0.75rem', color: 'var(--text)', opacity: 0.7 }}>{t('admin.unit')} ({activeLangTab.toUpperCase()})</label>
+                          {activeLangTab === 'en' ? (
+                            <select value={ing.unit} onChange={e => {
+                              const newList = [...ingredientList]; newList[idx].unit = e.target.value; setIngredientList(newList);
+                            }} style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--glass-border)', backgroundColor: 'var(--input-bg)', color: 'var(--text)', fontSize: '0.9rem' }}>
+                              <option value="grm">grm</option>
+                              <option value="kg">kg</option>
+                              <option value="ml">ml</option>
+                              <option value="L">L</option>
+                              <option value="spoon">spoon</option>
+                              <option value="piece">piece</option>
+                              <option value="cup">cup</option>
+                              <option value="pinch">pinch</option>
+                              <option value="to taste">to taste</option>
+                            </select>
+                          ) : (
+                            <input required type="text" value={ing[`unit_${activeLangTab}`] || ''} onChange={e => {
+                              const newList = [...ingredientList]; newList[idx][`unit_${activeLangTab}`] = e.target.value; setIngredientList(newList);
+                            }} style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--glass-border)', backgroundColor: 'var(--input-bg)', color: 'var(--text)', fontSize: '0.9rem' }} />
+                          )}
                         </div>
                       </div>
                       <button type="button" onClick={() => {
@@ -478,7 +545,7 @@ export default function AdminDashboard() {
               </div>
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
-                  <label style={{ fontWeight: '600', color: 'var(--primary)' }}>{t('admin.method')}</label>
+                  <label style={{ fontWeight: '600', color: 'var(--primary)' }}>{t('admin.method')} ({activeLangTab.toUpperCase()})</label>
                   <div style={{ display: 'flex', gap: '0.5rem' }}>
                     <span style={{ fontSize: '0.75rem', opacity: 0.6, marginRight: '0.5rem', display: 'flex', alignItems: 'center' }}>{t('admin.highlightText')}</span>
                     <button type="button" onClick={() => insertTag('**', '**')} style={{ padding: '0.2rem 0.6rem', fontSize: '0.8rem', fontWeight: 'bold', background: 'var(--panel-bg)', color: 'var(--text)', border: '1px solid var(--glass-border)', borderRadius: '4px', cursor: 'pointer' }} title="Bold (Fat)">B</button>
@@ -486,12 +553,20 @@ export default function AdminDashboard() {
                     <button type="button" onClick={() => insertTag('$$', '$$')} style={{ padding: '0.2rem 0.6rem', fontSize: '0.8rem', color: '#d4af37', background: 'var(--panel-bg)', border: '1px solid var(--glass-border)', borderRadius: '4px', cursor: 'pointer' }} title="Gold Highlight">Hue</button>
                   </div>
                 </div>
-                <textarea ref={methodRef} required value={form.method} onChange={e => setForm({...form, method: e.target.value})} rows={5} style={{ width: '100%', padding: '0.8rem 1rem', borderRadius: '8px', border: '1px solid rgba(212, 175, 55, 0.3)', backgroundColor: 'var(--input-bg)', fontFamily: 'inherit', color: 'var(--text)', lineHeight: '1.5' }} />
-                {form.method.trim().length > 0 && (
+                <textarea 
+                  ref={methodRef} required 
+                  value={activeLangTab === 'en' ? form.method : form[`method_${activeLangTab}`]} 
+                  onChange={e => {
+                    if (activeLangTab === 'en') setForm({...form, method: e.target.value})
+                    else setForm({...form, [`method_${activeLangTab}`]: e.target.value})
+                  }} 
+                  rows={5} style={{ width: '100%', padding: '0.8rem 1rem', borderRadius: '8px', border: '1px solid rgba(212, 175, 55, 0.3)', backgroundColor: 'var(--input-bg)', fontFamily: 'inherit', color: 'var(--text)', lineHeight: '1.5' }} 
+                />
+                {(activeLangTab === 'en' ? form.method : form[`method_${activeLangTab}`]).trim().length > 0 && (
                   <div style={{ marginTop: '0.5rem', padding: '1rem', background: 'rgba(0,0,0,0.2)', borderRadius: '8px', border: '1px solid rgba(212, 175, 55, 0.1)' }}>
                     <h4 style={{ fontSize: '0.75rem', color: 'var(--primary)', marginBottom: '0.8rem', opacity: 0.8, textTransform: 'uppercase', letterSpacing: '1px' }}>{t('admin.livePreview')}</h4>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-                      {form.method.split('\n').filter(line => line.trim()).map((step, idx) => (
+                      {(activeLangTab === 'en' ? form.method : form[`method_${activeLangTab}`]).split('\n').filter(line => line.trim()).map((step, idx) => (
                         <div key={idx} style={{ display: 'flex', gap: '1rem' }}>
                           <div style={{ fontSize: '1.2rem', color: 'rgba(212, 175, 55, 0.4)', fontWeight: '800', fontFamily: 'serif', flexShrink: 0 }}>
                             {(idx + 1).toString().padStart(2, '0')}
@@ -503,7 +578,7 @@ export default function AdminDashboard() {
                   </div>
                 )}
               </div>
-              <button type="submit" className="btn btn-primary" style={{ marginTop: '1rem', border: 'none' }}>{editingId ? t('admin.saveChanges') : t('admin.publishRecipe')}</button>
+              <button type="submit" className="btn btn-primary" disabled={isSaving} style={{ marginTop: '1rem', border: 'none', opacity: isSaving ? 0.7 : 1 }}>{isSaving ? "Saving..." : (editingId ? t('admin.saveChanges') : t('admin.publishRecipe'))}</button>
             </form>
           </div>
         </div>
@@ -589,7 +664,7 @@ export default function AdminDashboard() {
             </div>
             
             <div className="p-6 md:p-10 pt-14 md:pt-14">
-              <h2 className="heading text-3xl md:text-[2.5rem]" style={{ color: 'var(--text)', fontWeight: '700', marginBottom: '2rem' }}>{viewRecipe.title}</h2>
+              <h2 className="heading text-3xl md:text-[2.5rem]" style={{ color: 'var(--text)', fontWeight: '700', marginBottom: '2rem' }}>{viewRecipe[`title_${language}`] || viewRecipe.title}</h2>
               
               <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: '2.5rem' }}>
                 <div style={{ backgroundColor: 'var(--panel-bg)', borderRadius: '16px', padding: '2rem', border: '1px solid rgba(212, 175, 55, 0.15)' }}>
@@ -597,11 +672,12 @@ export default function AdminDashboard() {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
                     {(() => {
                       let parsedIngredients = [];
+                      const ingStr = viewRecipe[`ingredients_${language}`] || viewRecipe.ingredients;
                       try {
-                        if (viewRecipe.ingredients && viewRecipe.ingredients.trim().startsWith('[')) {
-                          parsedIngredients = JSON.parse(viewRecipe.ingredients);
+                        if (ingStr && ingStr.trim().startsWith('[')) {
+                          parsedIngredients = JSON.parse(ingStr);
                         } else {
-                          parsedIngredients = (viewRecipe.ingredients || '').split('\n').filter(l => l.trim()).map((line, idx) => ({
+                          parsedIngredients = (ingStr || '').split('\n').filter(l => l.trim()).map((line, idx) => ({
                             name: line.trim(),
                             quantity: 1,
                             unit: 'piece',
@@ -641,7 +717,7 @@ export default function AdminDashboard() {
                 <div style={{ padding: '0 1rem' }}>
                   <h3 style={{ fontSize: '1.3rem', color: 'var(--primary)', fontWeight: '600', marginBottom: '1.5rem', borderBottom: '1px solid rgba(212, 175, 55, 0.2)', paddingBottom: '0.5rem', letterSpacing: '2px', textTransform: 'uppercase' }}>{t('recipes.method')}</h3>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                    {viewRecipe.method.split('\n').filter(line => line.trim()).map((step, idx) => (
+                    {(viewRecipe[`method_${language}`] || viewRecipe.method).split('\n').filter(line => line.trim()).map((step, idx) => (
                       <div key={idx} style={{ display: 'flex', gap: '1.5rem' }}>
                         <div style={{ fontSize: '2.5rem', color: 'rgba(212, 175, 55, 0.2)', fontWeight: '800', lineHeight: '0.9', fontFamily: 'serif', flexShrink: 0 }}>
                           {(idx + 1).toString().padStart(2, '0')}

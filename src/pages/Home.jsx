@@ -52,7 +52,7 @@ export default function Home() {
       </div>
       
       {/* Soft gradient orb in background */}
-      <div className="absolute right-0 top-[10%] md:right-[10%] md:top-[20%] w-[300px] h-[300px] md:w-[500px] md:h-[500px] z-0 opacity-50 md:opacity-100" style={{ background: 'radial-gradient(circle, rgba(0, 0, 0, 0.6) 0%, rgba(15, 20, 25, 0) 70%)', filter: 'blur(40px)' }}></div>
+      <div className="absolute end-0 top-[10%] md:end-[10%] md:top-[20%] w-[300px] h-[300px] md:w-[500px] md:h-[500px] z-0 opacity-50 md:opacity-100" style={{ background: 'radial-gradient(circle, rgba(0, 0, 0, 0.6) 0%, rgba(15, 20, 25, 0) 70%)', filter: 'blur(40px)' }}></div>
 
       <style>{`
         .hide-scroll::-webkit-scrollbar {
@@ -63,7 +63,7 @@ export default function Home() {
           scrollbar-width: none;  /* Firefox */
         }
       `}</style>
-      <div className="flex-1 w-full pl-6 pr-6 md:p-20 xl:p-20 xl:pl-0 mt-2 md:mt-0 flex md:grid flex-row md:grid-cols-2 gap-4 md:gap-8 overflow-x-auto md:overflow-visible snap-x snap-mandatory hide-scroll z-10 perspective-[1000px] mb-8 md:mb-0 pb-4 md:pb-0 items-center">
+      <div className="flex-1 w-full px-6 md:p-20 xl:p-20 xl:ps-0 mt-2 md:mt-0 flex md:grid flex-row md:grid-cols-2 gap-4 md:gap-8 overflow-x-auto md:overflow-visible snap-x snap-mandatory hide-scroll z-10 perspective-[1000px] mb-8 md:mb-0 pb-4 md:pb-0 items-center">
         {['/bakery-1.jpg', '/bakery-2.jpg', '/bakery-3.jpg', '/bakery-4.jpg'].map((src, i) => (
           <motion.div 
             key={i} 

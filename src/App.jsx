@@ -30,7 +30,7 @@ const PublicLayout = ({ children, isLightMode, setIsLightMode, isAdmin }) => {
   return (
     <div className="flex flex-col md:flex-row min-h-screen relative">
       <CursorTrail />
-      <nav className="glass w-full md:w-[280px] md:h-screen md:fixed md:top-0 relative z-50 flex flex-col p-6 md:p-12">
+      <nav className="glass w-full md:w-[280px] md:h-screen md:fixed md:top-0 md:start-0 relative z-50 flex flex-col p-6 md:p-12">
         <div className="heading" style={{ 
           fontSize: '1.8rem', 
           fontWeight: '700', 
@@ -57,7 +57,7 @@ const PublicLayout = ({ children, isLightMode, setIsLightMode, isAdmin }) => {
             </div>
           )}
         </div>
-        <div className="mt-4 md:mt-auto mb-2 md:mb-8 md:pl-4 flex flex-col gap-4">
+        <div className="mt-4 md:mt-auto mb-2 md:mb-8 md:ps-4 flex flex-col gap-4">
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', color: 'var(--text)', opacity: 0.8, fontSize: '0.9rem', fontWeight: 600 }}>
             <span style={{ fontSize: '0.9rem' }}>{t('nav.theme')}</span>
             <input 
@@ -123,7 +123,7 @@ const PublicLayout = ({ children, isLightMode, setIsLightMode, isAdmin }) => {
           }
         `}</style>
       </nav>
-      <main className="flex-1 relative md:ml-[280px] flex flex-col">
+      <main className="flex-1 relative md:ms-[280px] flex flex-col">
         <div className="flex-1 flex flex-col">
           {children}
         </div>

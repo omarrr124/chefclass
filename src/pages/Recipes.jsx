@@ -5,7 +5,7 @@ import { supabase } from '../supabaseClient'
 import { useLanguage } from '../context/LanguageContext'
 
 export default function Recipes() {
-  const { t } = useLanguage()
+  const { t, language } = useLanguage()
   const [recipes, setRecipes] = useState([])
   const [categories, setCategories] = useState([])
   const [viewRecipe, setViewRecipe] = useState(null)
@@ -162,7 +162,7 @@ export default function Recipes() {
             </div>
 
             <div style={{ padding: '2.5rem 1.5rem 2rem 1.5rem', display: 'flex', flexDirection: 'column', flex: 1 }}>
-              <h3 className="heading" style={{ fontSize: '1.6rem', fontWeight: '600', color: 'var(--text)', marginBottom: '0.5rem' }}>{recipe.title}</h3>
+              <h3 className="heading" style={{ fontSize: '1.6rem', fontWeight: '600', color: 'var(--text)', marginBottom: '0.5rem' }}>{recipe[`title_${language}`] || recipe.title}</h3>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: 'auto' }}>
                 <span style={{ fontSize: '0.8rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '1px', padding: '0.3rem 0.8rem', borderRadius: '20px', backgroundColor: recipe.difficulty === 'easy' ? 'rgba(34, 197, 94, 0.1)' : recipe.difficulty === 'hard' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(212, 175, 55, 0.1)', color: recipe.difficulty === 'easy' ? '#22c55e' : recipe.difficulty === 'hard' ? '#ef4444' : 'var(--primary)', border: `1px solid ${recipe.difficulty === 'easy' ? 'rgba(34, 197, 94, 0.3)' : recipe.difficulty === 'hard' ? 'rgba(239, 68, 68, 0.3)' : 'rgba(212, 175, 55, 0.3)'}` }}>
                   {recipe.difficulty === 'easy' ? t('difficulty.easy') : recipe.difficulty === 'hard' ? t('difficulty.hard') : t('difficulty.medium')}
@@ -204,7 +204,7 @@ export default function Recipes() {
             </div>
             
             <div className="p-6 pt-10 md:p-10 md:pt-14">
-              <h2 className="heading" style={{ fontSize: 'clamp(2rem, 5vw, 2.5rem)', color: 'var(--text)', fontWeight: '700', marginBottom: '2rem' }}>{viewRecipe.title}</h2>
+              <h2 className="heading" style={{ fontSize: 'clamp(2rem, 5vw, 2.5rem)', color: 'var(--text)', fontWeight: '700', marginBottom: '2rem' }}>{viewRecipe[`title_${language}`] || viewRecipe.title}</h2>
               
               <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: '2.5rem' }}>
                 <div className="p-4 md:p-8" style={{ backgroundColor: 'var(--panel-bg)', borderRadius: '16px', border: '1px solid rgba(212, 175, 55, 0.15)' }}>
@@ -212,11 +212,12 @@ export default function Recipes() {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
                     {(() => {
                       let parsedIngredients = [];
+                      const ingStr = viewRecipe[`ingredients_${language}`] || viewRecipe.ingredients;
                       try {
-                        if (viewRecipe.ingredients && viewRecipe.ingredients.trim().startsWith('[')) {
-                          parsedIngredients = JSON.parse(viewRecipe.ingredients);
+                        if (ingStr && ingStr.trim().startsWith('[')) {
+                          parsedIngredients = JSON.parse(ingStr);
                         } else {
-                          parsedIngredients = (viewRecipe.ingredients || '').split('\n').filter(l => l.trim()).map((line, idx) => ({
+                          parsedIngredients = (ingStr || '').split('\n').filter(l => l.trim()).map((line, idx) => ({
                             name: line.trim(),
                             quantity: 1,
                             unit: 'piece',
@@ -261,7 +262,7 @@ export default function Recipes() {
                 <div style={{ padding: '0 1rem' }}>
                   <h3 style={{ fontSize: '1.3rem', color: 'var(--primary)', fontWeight: '600', marginBottom: '1.5rem', borderBottom: '1px solid rgba(212, 175, 55, 0.2)', paddingBottom: '0.5rem', letterSpacing: '2px', textTransform: 'uppercase' }}>{t('recipes.method')}</h3>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                    {viewRecipe.method.split('\n').filter(line => line.trim()).map((step, idx) => (
+                    {(viewRecipe[`method_${language}`] || viewRecipe.method).split('\n').filter(line => line.trim()).map((step, idx) => (
                       <div key={idx} style={{ display: 'flex', gap: '1.5rem' }}>
                         <div style={{ fontSize: '2.5rem', color: 'rgba(212, 175, 55, 0.2)', fontWeight: '800', lineHeight: '0.9', fontFamily: 'serif', flexShrink: 0 }}>
                           {(idx + 1).toString().padStart(2, '0')}
